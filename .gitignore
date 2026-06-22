@@ -8,3 +8,4 @@ server/dist/
 .firebase/
 serviceAccountKey.json
 docs/
+CLAUDE.md
