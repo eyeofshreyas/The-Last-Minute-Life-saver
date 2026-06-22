@@ -1,0 +1,13 @@
+{
+  "name": "last-minute-life-saver",
+  "private": true,
+  "workspaces": ["shared", "web", "server"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w web\"",
+    "build": "npm run build -w shared && npm run build -w web && npm run build -w server",
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w web && npm run typecheck -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

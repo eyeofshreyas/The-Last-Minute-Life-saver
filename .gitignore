@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+web/dist/
+server/dist/
+*.js.map
+.firebase/
+serviceAccountKey.json
+docs/
