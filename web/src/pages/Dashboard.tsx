@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import { signOutUser } from '../lib/auth';
 import type { User } from 'firebase/auth';
 import type { Goal, Task, AuditEntry } from '@lmls/shared';
+import SnapToPlan from '../components/SnapToPlan';
 
 interface Props { user: User }
 
@@ -96,6 +97,8 @@ export default function Dashboard({ user }: Props) {
               Add Goal
             </button>
           </form>
+
+          <SnapToPlan onGoalsCreated={refresh} />
 
           <div className="space-y-4">
             {goals.map(goal => {
