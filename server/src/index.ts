@@ -38,7 +38,7 @@ app.use('/api/snap', snapRouter);
 
 // Serve built frontend in production
 if (config.nodeEnv === 'production') {
-  const webDist = path.join(__dirname, '../../web/dist');
+  const webDist = path.join(__dirname, '../web/dist'); // __dirname is dist/, web/dist is one level up in Docker
   app.use(express.static(webDist));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(webDist, 'index.html'));
