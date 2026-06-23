@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+// __dirname = server/src/, so ../../.env = project root .env
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 function requireEnv(name: string): string {
   const val = process.env[name];
