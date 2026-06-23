@@ -6,20 +6,31 @@ import type { Goal, Task, AuditEntry } from '@lmls/shared';
 
 interface Props { user: User }
 
+/** Returns a Tailwind colour class + label for a risk score 0–100. */
+function riskBadge(score: number): { label: string; className: string } {
+  if (score >= 80) return { label: `${score}% risk`, className: 'bg-red-900 text-red-300' };
+  if (score >= 60) return { label: `${score}% risk`, className: 'bg-orange-900 text-orange-300' };
+  if (score >= 30) return { label: `${score}% risk`, className: 'bg-yellow-900 text-yellow-300' };
+  return { label: `${score}% risk`, className: 'bg-gray-800 text-gray-400' };
+}
+
 export default function Dashboard({ user }: Props) {
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [confirmations, setConfirmations] = useState<Task[]>([]);
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [loading, setLoading] = useState(true);
 
   async function refresh() {
-    const [g, c, a] = await Promise.all([
+    const [g, t, c, a] = await Promise.all([
       api.goals.list(),
+      api.tasks.list(),
       api.confirmations.list(),
       api.audit.list(),
     ]);
     setGoals(g);
+    setTasks(t);
     setConfirmations(c);
     setAuditLog(a);
   }
@@ -87,36 +98,74 @@ export default function Dashboard({ user }: Props) {
           </form>
 
           <div className="space-y-4">
-            {goals.map(goal => (
-              <div
-                key={goal.id}
-                className={`bg-gray-900 border rounded-xl p-5 ${
-                  goal.status === 'at_risk' ? 'border-red-500' : 'border-gray-800'
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold text-white">{goal.title}</h3>
-                    {goal.deadline && (
-                      <p className="text-gray-400 text-sm mt-1">
-                        Due {new Date(goal.deadline).toLocaleDateString()}
-                      </p>
-                    )}
+            {goals.map(goal => {
+              const goalTasks = tasks.filter(t => t.goalId === goal.id);
+              const topRiskScore = goalTasks.reduce(
+                (max, t) => Math.max(max, t.riskScore ?? 0),
+                0,
+              );
+              const badge = topRiskScore > 0 ? riskBadge(topRiskScore) : null;
+
+              return (
+                <div
+                  key={goal.id}
+                  className={`bg-gray-900 border rounded-xl p-5 ${
+                    goal.status === 'at_risk' ? 'border-red-500' : 'border-gray-800'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-white">{goal.title}</h3>
+                      {goal.deadline && (
+                        <p className="text-gray-400 text-sm mt-1">
+                          Due {new Date(goal.deadline).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {badge && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${badge.className}`}>
+                          {badge.label}
+                        </span>
+                      )}
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          goal.status === 'at_risk'
+                            ? 'bg-red-900 text-red-300'
+                            : goal.status === 'done'
+                            ? 'bg-green-900 text-green-300'
+                            : 'bg-gray-800 text-gray-400'
+                        }`}
+                      >
+                        {goal.status}
+                      </span>
+                    </div>
                   </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      goal.status === 'at_risk'
-                        ? 'bg-red-900 text-red-300'
-                        : goal.status === 'done'
-                        ? 'bg-green-900 text-green-300'
-                        : 'bg-gray-800 text-gray-400'
-                    }`}
-                  >
-                    {goal.status}
-                  </span>
+
+                  {/* Per-task risk row */}
+                  {goalTasks.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                      {goalTasks.map(t => {
+                        const tb = t.riskScore !== undefined ? riskBadge(t.riskScore) : null;
+                        return (
+                          <div key={t.id} className="flex items-center justify-between text-xs text-gray-400">
+                            <span className="truncate mr-2">{t.title}</span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {tb && (
+                                <span className={`px-1.5 py-0.5 rounded ${tb.className}`}>
+                                  {tb.label}
+                                </span>
+                              )}
+                              <span className="text-gray-600">{t.status}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {goals.length === 0 && (
               <div className="text-center py-12 text-gray-600">
                 No goals yet. Add your first deadline above.
