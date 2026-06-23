@@ -22,13 +22,15 @@ export default function Dashboard({ user }: Props) {
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   async function refresh() {
+    setFetchError(null);
     const [g, t, c, a] = await Promise.all([
-      api.goals.list(),
-      api.tasks.list(),
-      api.confirmations.list(),
-      api.audit.list(),
+      api.goals.list().catch(() => [] as Goal[]),
+      api.tasks.list().catch((e: Error) => { setFetchError(e.message); return [] as Task[]; }),
+      api.confirmations.list().catch(() => [] as Task[]),
+      api.audit.list().catch(() => [] as AuditEntry[]),
     ]);
     setGoals(g);
     setTasks(t);
@@ -68,6 +70,20 @@ export default function Dashboard({ user }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
+      {/* Firestore index / API error banner */}
+      {fetchError && (
+        <div className="bg-red-950 border-b border-red-800 text-red-300 px-6 py-3 text-sm text-center">
+          ⚠️ Database setup needed — please create the Firestore composite index.{' '}
+          <a
+            href="https://console.firebase.google.com/project/the-last-minute-saver/firestore/indexes"
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-red-200"
+          >
+            Open Firestore Indexes →
+          </a>
+        </div>
+      )}
       {/* Demo Banner — visible when there are no goals yet */}
       {goals.length === 0 && (
         <div className="bg-brand-900/30 border-b border-brand-800 text-brand-300 px-6 py-3 text-sm text-center flex items-center justify-center gap-3">
