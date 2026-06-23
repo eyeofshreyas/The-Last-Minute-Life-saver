@@ -26,6 +26,7 @@ import workspaceRouter from './routes/workspace';
 import paymentsRouter from './routes/payments';
 import sweepRouter from './routes/sweep';
 import snapRouter from './routes/snap';
+import demoRouter from './routes/demo';
 
 app.use('/api/auth', authRouter);
 app.use('/api/goals', goalsRouter);
@@ -35,6 +36,7 @@ app.use('/api/workspace', workspaceRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/sweep', sweepRouter);
 app.use('/api/snap', snapRouter);
+app.use('/api/demo', demoRouter);
 
 // Serve built frontend in production
 if (config.nodeEnv === 'production') {

@@ -47,4 +47,7 @@ export const api = {
   payments: {
     checkout: () => apiFetch<{ url: string }>('/payments/checkout', { method: 'POST' }),
   },
+  demo: {
+    seed: () => apiFetch<{ seeded: number }>('/demo/seed', { method: 'POST' }),
+  },
 };

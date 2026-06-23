@@ -61,8 +61,25 @@ export default function Dashboard({ user }: Props) {
     );
   }
 
+  async function loadDemo() {
+    await api.demo.seed();
+    refresh();
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
+      {/* Demo Banner — visible when there are no goals yet */}
+      {goals.length === 0 && (
+        <div className="bg-brand-900/30 border-b border-brand-800 text-brand-300 px-6 py-3 text-sm text-center flex items-center justify-center gap-3">
+          <span>No goals yet — try the demo to see the agent in action</span>
+          <button
+            onClick={loadDemo}
+            className="underline hover:text-brand-200 transition-colors"
+          >
+            Load demo data
+          </button>
+        </div>
+      )}
       <header className="border-b border-gray-800 px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-brand-500">Last-Minute Life Saver</h1>
         <div className="flex items-center gap-4">
