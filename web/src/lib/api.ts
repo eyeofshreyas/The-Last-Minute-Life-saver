@@ -44,4 +44,7 @@ export const api = {
   sweep: {
     run: () => apiFetch<{ triggered: number }>('/sweep', { method: 'POST' }),
   },
+  payments: {
+    checkout: () => apiFetch<{ url: string }>('/payments/checkout', { method: 'POST' }),
+  },
 };

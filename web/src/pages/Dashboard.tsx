@@ -73,6 +73,15 @@ export default function Dashboard({ user }: Props) {
           >
             Run Agent Now
           </button>
+          <button
+            onClick={async () => {
+              const data = await api.payments.checkout();
+              window.open(data.url, '_blank');
+            }}
+            className="text-yellow-400 hover:text-yellow-300 text-sm border border-yellow-700 px-3 py-1.5 rounded-lg"
+          >
+            Upgrade to Pro
+          </button>
           <button onClick={signOutUser} className="text-gray-400 hover:text-white text-sm">
             Sign out
           </button>
