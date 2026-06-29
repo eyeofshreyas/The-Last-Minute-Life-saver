@@ -34,8 +34,23 @@ export async function callGemini(params: GeminiCallParams): Promise<GeminiRespon
   });
 
   const request: GenerateContentRequest = { contents: params.messages };
-  const result = await model.generateContent(request);
-  const response = result.response;
+
+  // ponytail: 3 retries for 429 rate limits; respects retryDelay from API response
+  let result;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      result = await model.generateContent(request);
+      break;
+    } catch (err: unknown) {
+      const status = (err as { status?: number }).status;
+      if (status !== 429 || attempt === 2) throw err;
+      const delay = ((err as { errorDetails?: Array<{ retryDelay?: string }> }).errorDetails
+        ?.find(d => d.retryDelay)?.retryDelay ?? '5s')
+        .replace('s', '');
+      await new Promise(r => setTimeout(r, (parseInt(delay, 10) || 5) * 1000));
+    }
+  }
+  const response = result!.response;
 
   const functionCalls = response.candidates?.[0]?.content?.parts
     ?.filter(p => p.functionCall)
