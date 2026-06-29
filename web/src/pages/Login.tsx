@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { signInWithGoogle } from '../lib/auth';
 
 export default function Login() {
+  const [error, setError] = useState<string | null>(null);
+
   async function handleSignIn() {
+    setError(null);
     try {
       const user = await signInWithGoogle();
       await fetch('/api/auth/session', {
@@ -18,6 +22,7 @@ export default function Login() {
       });
     } catch (err) {
       console.error('Sign in failed', err);
+      setError('Sign-in failed. Please try again.');
     }
   }
 
@@ -90,6 +95,9 @@ export default function Login() {
             <div className="flex-1 h-px" style={{ background: '#E0D8C8' }} />
           </div>
 
+          {error && (
+            <p className="mt-3 text-center text-xs font-medium" style={{ color: '#B83232' }}>{error}</p>
+          )}
           <p className="mt-4 text-center text-xs" style={{ color: '#8C8270' }}>
             Powered by Gemini AI · VIBE 2 SHIP
           </p>

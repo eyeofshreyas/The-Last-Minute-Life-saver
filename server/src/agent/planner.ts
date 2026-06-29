@@ -47,7 +47,12 @@ Decompose this into 3-7 concrete tasks. Use autonomyTier 1 (suggest) for researc
   });
 
   if (!response.text) throw new Error('Planner returned empty response');
-  const rawTasks: RawTask[] = JSON.parse(response.text);
+  let rawTasks: RawTask[];
+  try {
+    rawTasks = JSON.parse(response.text) as RawTask[];
+  } catch {
+    throw new Error(`Planner returned invalid JSON: ${response.text.slice(0, 200)}`);
+  }
 
   const titleToId: Record<string, string> = {};
   const tasks: Task[] = [];

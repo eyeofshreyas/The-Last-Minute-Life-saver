@@ -25,6 +25,7 @@ export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
+  const [createError, setCreateError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,9 +37,14 @@ export default function Goals() {
   async function createGoal(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    await api.goals.create({ title: newTitle, source: 'manual' });
-    setNewTitle('');
-    api.goals.list().then(setGoals);
+    setCreateError(null);
+    try {
+      await api.goals.create({ title: newTitle, source: 'manual' });
+      setNewTitle('');
+      api.goals.list().then(setGoals);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'Failed to create goal');
+    }
   }
 
   return (
@@ -85,6 +91,10 @@ export default function Goals() {
           Add Goal
         </button>
       </form>
+
+      {createError && (
+        <p className="text-xs font-medium mb-4" style={{ color: '#B83232' }}>{createError}</p>
+      )}
 
       {/* Goal list */}
       {loading ? (

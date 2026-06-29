@@ -9,3 +9,5 @@ server/dist/
 serviceAccountKey.json
 docs/
 CLAUDE.md
+design-previews/
+.gitignore

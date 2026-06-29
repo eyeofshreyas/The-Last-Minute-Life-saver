@@ -9,6 +9,7 @@ router.post('/checkout', requireAuth, async (req, res) => {
   try {
     const profile = await getUserProfile(req.uid);
     if (!profile) { res.status(404).json({ error: 'User not found' }); return; }
+    if (!profile.email) { res.status(400).json({ error: 'User profile missing email' }); return; }
     const url = await createCheckoutUrl(req.uid, profile.email);
     res.json({ url });
   } catch (err) {

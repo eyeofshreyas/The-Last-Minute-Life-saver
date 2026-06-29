@@ -10,6 +10,7 @@ export function initFirebase(): void {
     credential: admin.credential.cert(serviceAccount),
     projectId: config.firebase.projectId,
   });
+  admin.firestore().settings({ ignoreUndefinedProperties: true });
   initialized = true;
 }
 

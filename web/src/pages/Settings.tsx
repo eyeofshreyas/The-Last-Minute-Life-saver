@@ -1,11 +1,41 @@
+import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { signOutUser } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 
 interface Props { user: User }
 
 export default function Settings({ user }: Props) {
   const navigate = useNavigate();
+  const [workspaceConnected, setWorkspaceConnected] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [oauthError, setOauthError] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.workspace.status().then(r => setWorkspaceConnected(r.connected)).catch(() => {});
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('workspace') === 'connected') {
+      setWorkspaceConnected(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('workspace') === 'denied') {
+      setOauthError(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  async function handleConnect() {
+    setConnecting(true);
+    setConnectError(null);
+    try {
+      const { url } = await api.workspace.getAuthUrl();
+      window.location.href = url;
+    } catch {
+      setConnecting(false);
+      setConnectError('Could not start sign-in — please try again.');
+    }
+  }
 
   async function handleSignOut() {
     await signOutUser();
@@ -54,16 +84,26 @@ export default function Settings({ user }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium" style={{ color: '#18150F' }}>Gmail &amp; Calendar</p>
-            <p className="text-xs mt-0.5" style={{ color: '#8C8270' }}>Connect to enable email drafting and calendar scheduling.</p>
+            <p className="text-xs mt-0.5" style={{ color: (oauthError || connectError) ? '#B83232' : '#8C8270' }}>
+              {connectError ?? (oauthError ? 'Access denied — make sure your account is in the test users list.' : 'Connect to enable email drafting and calendar scheduling.')}
+            </p>
           </div>
-          <button
-            className="text-sm font-semibold px-4 py-2 rounded-xl transition-all"
-            style={{ background: '#0D1B3E', color: '#F5F0E4', border: 'none', boxShadow: '0 2px 8px rgba(13,27,62,0.18)' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#1A2D5A')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#0D1B3E')}
-          >
-            Connect
-          </button>
+          {workspaceConnected ? (
+            <span className="text-sm font-semibold px-4 py-2 rounded-xl" style={{ background: 'rgba(34,139,34,0.08)', color: '#228B22', border: '1px solid rgba(34,139,34,0.2)' }}>
+              ✓ Connected
+            </span>
+          ) : (
+            <button
+              onClick={handleConnect}
+              disabled={connecting}
+              className="text-sm font-semibold px-4 py-2 rounded-xl transition-all"
+              style={{ background: '#0D1B3E', color: '#F5F0E4', border: 'none', boxShadow: '0 2px 8px rgba(13,27,62,0.18)', opacity: connecting ? 0.7 : 1 }}
+              onMouseEnter={e => { if (!connecting) e.currentTarget.style.background = '#1A2D5A'; }}
+              onMouseLeave={e => { if (!connecting) e.currentTarget.style.background = '#0D1B3E'; }}
+            >
+              {connecting ? 'Redirecting…' : 'Connect'}
+            </button>
+          )}
         </div>
       </div>
     </div>
