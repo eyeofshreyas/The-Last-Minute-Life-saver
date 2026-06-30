@@ -19,7 +19,7 @@ const router = Router();
  */
 router.get('/auth', requireAuth, (req, res) => {
   const url = getAuthUrl(req.uid);
-  res.redirect(url);
+  res.json({ url });
 });
 
 /**
@@ -37,7 +37,7 @@ router.get('/callback', async (req, res) => {
 
   if (error) {
     console.error('OAuth consent denied:', error);
-    res.redirect(`${config.frontendUrl}?workspace=denied`);
+    res.redirect(`${config.frontendUrl}/settings?workspace=denied`);
     return;
   }
 
@@ -57,7 +57,7 @@ router.get('/callback', async (req, res) => {
       await upsertUserProfile({ ...profile, workspaceConnected: true });
     }
 
-    res.redirect(`${config.frontendUrl}?workspace=connected`);
+    res.redirect(`${config.frontendUrl}/settings?workspace=connected`);
   } catch (err) {
     console.error('OAuth callback error', err);
     res.status(500).send('OAuth token exchange failed');

@@ -21,12 +21,8 @@ export async function createGoal(
 
 export async function getGoals(userId: string): Promise<Goal[]> {
   const db = getFirestore();
-  const snap = await db
-    .collection('goals')
-    .where('userId', '==', userId)
-    .orderBy('createdAt', 'desc')
-    .get();
-  return snap.docs.map(d => d.data() as Goal);
+  const snap = await db.collection('goals').where('userId', '==', userId).get();
+  return snap.docs.map(d => d.data() as Goal).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function getGoal(goalId: string): Promise<Goal | null> {
@@ -60,11 +56,9 @@ export async function createTask(
 export async function getTasks(userId: string, goalId?: string): Promise<Task[]> {
   const db = getFirestore();
   let q = db.collection('tasks').where('userId', '==', userId);
-  if (goalId) {
-    q = q.where('goalId', '==', goalId) as typeof q;
-  }
-  const snap = await q.orderBy('due', 'asc').get();
-  return snap.docs.map(d => d.data() as Task);
+  if (goalId) q = q.where('goalId', '==', goalId) as typeof q;
+  const snap = await q.get();
+  return snap.docs.map(d => d.data() as Task).sort((a, b) => a.due.localeCompare(b.due));
 }
 
 export async function getTask(taskId: string): Promise<Task | null> {
@@ -96,13 +90,11 @@ export async function createAuditEntry(
 
 export async function getAuditEntries(userId: string, limit = 50): Promise<AuditEntry[]> {
   const db = getFirestore();
-  const snap = await db
-    .collection('audit')
-    .where('userId', '==', userId)
-    .orderBy('ts', 'desc')
-    .limit(limit)
-    .get();
-  return snap.docs.map(d => d.data() as AuditEntry);
+  const snap = await db.collection('audit').where('userId', '==', userId).get();
+  return snap.docs
+    .map(d => d.data() as AuditEntry)
+    .sort((a, b) => b.ts.localeCompare(a.ts))
+    .slice(0, limit);
 }
 
 // ── User Profile ───────────────────────────────────────────────────────────

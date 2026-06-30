@@ -50,4 +50,8 @@ export const api = {
   demo: {
     seed: () => apiFetch<{ seeded: number }>('/demo/seed', { method: 'POST' }),
   },
+  workspace: {
+    getAuthUrl: () => apiFetch<{ url: string }>('/workspace/auth'),
+    status: () => apiFetch<{ connected: boolean }>('/workspace/status'),
+  },
 };
